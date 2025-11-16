@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Carrito — Lentes Chismosos</title>
+  <link rel="stylesheet" href="style.css" />
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <header class="nav">
+    <div class="brand">
+      <img src="logo feo.png" alt="Logo" class="logo-img">
+      <div class="logo"></div>
+    </div>
+    <nav class="centered-nav">
+      <a href="index.html">Inicio</a>
+<a href="nosotros.html">Nosotros</a>
+<a href="contacto.html">Contacto</a>
+<a href="carrito.html">Carrito</a>
+    </nav>
+  </header>
+
+  <main id="root" class="cart minimal"></main>
+
+  <footer>
+    <p>© ROBOTECHNO — Lentes Chismosos 2025</p>
+  </footer>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useEffect } = React;
+
+    function Carrito() {
+      const [carrito, setCarrito] = useState(() => {
+        try {
+          return JSON.parse(localStorage.getItem("carrito")) || [];
+        } catch {
+          return [];
+        }
+      });
+
+      const [animando, setAnimando] = useState(false);
+
+      useEffect(() => {
+        localStorage.setItem("carrito", JSON.stringify(carrito));
+      }, [carrito]);
+
+      const eliminar = (index) => {
+        const nuevo = carrito.filter((_, i) => i !== index);
+        setCarrito(nuevo);
+      };
+
+      const cambiarColor = (index, nuevoColor) => {
+        const nuevo = carrito.map((p, i) =>
+          i === index ? { ...p, color: nuevoColor } : p
+        );
+        setCarrito(nuevo);
+      };
+
+      const comprar = () => {
+        const sinColor = carrito.some((p) => !p.color);
+        if (sinColor) {
+          alert("Por favor, seleccioná un color para todos los productos antes de comprar.");
+          return;
+        }
+
+        setAnimando(true);
+        setTimeout(() => {
+          localStorage.removeItem("carrito");
+          setCarrito([]);
+          setAnimando(false);
+          alert("¡Compra exitosa!");
+        }, 1200);
+      };
+
+      const total = carrito.reduce((acc, p) => acc + p.precio, 0);
+
+      const deshabilitado = carrito.length === 0 || carrito.some(p => !p.color);
+
+      return (
+        <div>
+          <center><h1 style={{color:'#38bdf8'}}>Tu carrito</h1></center>
+
+          {carrito.length === 0 ? (
+            <p style={{textAlign: "center"}}>No hay productos en el carrito.</p>
+          ) : (
+            carrito.map((p, i) => (
+              <div key={i} className={`cart-item ${animando ? "cart-burst" : ""}`}>
+                <div style={{flexGrow: 1}}>
+                  <p style={{margin: 0, fontWeight: "600"}}>{p.nombre}</p>
+                  <div style={{marginTop: "0.5rem"}}>
+                    <select
+                      value={p.color || ""}
+                      onChange={(e) => cambiarColor(i, e.target.value)}
+                      className="select-color"
+                    >
+                      <option value="">Elegí un color...</option>
+                      <option value="Violeta / Rosa">Violeta / Rosa</option>
+                      <option value="Verde / Azul">Verde / Azul</option>
+                    </select>
+                  </div>
+                </div>
+                <strong>${p.precio.toLocaleString("es-AR")}</strong>
+                <button className="btn-delete" onClick={() => eliminar(i)}>Eliminar</button>
+              </div>
+            ))
+          )}
+
+          {carrito.length > 0 && (
+            <>
+              <div className="cart-total">
+                <h3>Total: ${total.toLocaleString("es-AR")}</h3>
+              </div>
+              <button
+                className="btn-buy"
+                onClick={comprar}
+                disabled={deshabilitado}
+                style={deshabilitado ? {opacity: 0.6, cursor: "not-allowed"} : {}}
+              >
+                Comprar
+              </button>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Carrito />);
+  </script>
+</body>
+</html>
